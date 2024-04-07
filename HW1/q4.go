@@ -2,30 +2,51 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"time"
 )
 
-var secretChannel chan byte
+const sharedFileName = "shared_file.txt"
 
 func sender(message string) {
-	bytes := []byte(message)
-	for _, b := range bytes {
-		secretChannel <- b
+	file, err := os.OpenFile(sharedFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
 	}
-	close(secretChannel)
+	defer file.Close()
+
+	_, err = file.WriteString(message)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	time.Sleep(100 * time.Millisecond)
 }
 
 func receiver() string {
-	var message []byte
-	for b := range secretChannel {
-		message = append(message, b)
+	var message string
+
+	time.Sleep(100 * time.Millisecond)
+
+	data, err := ioutil.ReadFile(sharedFileName)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return ""
 	}
-	return string(message)
+	message = string(data)
+
+	return message
 }
 
 func main() {
-	secretChannel = make(chan byte, 1024)
+	messageToSend := "Hello, this is a secret message!"
 
-	go sender("Hello, this is a secret message!")
+	sender(messageToSend)
 
-	fmt.Println("Received secret message:", receiver())
+	receivedMessage := receiver()
+
+	fmt.Println("Received secret message:", receivedMessage)
 }
