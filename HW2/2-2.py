@@ -52,9 +52,11 @@ def bin_to_base64(bin_value):
     byte_length = (bin_value.bit_length() + 7) // 8
     return base64.b64encode(bin_value.to_bytes(byte_length, 'big')).decode()
 
+def bin_to_hex(bin_value):
+    return hex(bin_value)
+
 plaintext = input("Enter plaintext: ")
 key = input("Enter key: ")
-
 
 plaintext_bin = text_to_bin(plaintext)
 key_bin = text_to_bin(key)
@@ -65,4 +67,5 @@ key_bin = key_bin & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 ciphertext_bin = feistel_encrypt(plaintext_bin, key_bin)
 
 print("ciphertext (binary):", bin(ciphertext_bin))
+print("ciphertext (hex):", bin_to_hex(ciphertext_bin))
 print("ciphertext (Base64):", bin_to_base64(ciphertext_bin))
